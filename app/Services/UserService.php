@@ -161,9 +161,6 @@ class UserService extends Service
                     'api_token' => $token
                 ];
                 $this->uid = $this->userModel->insertGetId($insertUser);
-                $insertUser['id'] = $this->uid;
-                $pageService = new PageService();
-                $pageService->initial(env('USER_TEMPLATE', 1), $insertUser);
             } else {
                 $this->userModel->whereKey($this->uid)->update(['api_token' => $token]);
                 $this->userThirdModel->whereKey($userThird['id'])->update(['status' => 1]);

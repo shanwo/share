@@ -127,4 +127,49 @@ class UserController extends Controller
             'wework'   => $this->passportEncrypt($secret, 'wework'),
         ];
     }
+
+    /**
+     * 第三方登录回调
+     */
+    public function official()
+    {
+        $this->validate([
+            'code'  => 'required|alpha_num|size:32',
+            'state' => 'filled|alpha_num|between:32,64',
+        ], [
+            'code'  => '编码',
+            'state' => '状态',
+        ]);
+        if ($this->msg) {
+            return $this->returnApi();
+        }
+        $data = $this->userService->signInResult($this->request, 'official');
+        if (!empty($data['msg'])) {
+            $this->msg = $data['msg'];
+            return $this->returnApi();
+        }
+        $this->code = 200;
+        return $this->returnApi($data);
+    }
+
+    public function wechat()
+    {
+        $this->validate([
+            'code'  => 'required|alpha_num|size:32',
+            'state' => 'filled|alpha_num|between:32,64',
+        ], [
+            'code'  => '编码',
+            'state' => '状态',
+        ]);
+        if ($this->msg) {
+            return $this->returnApi();
+        }
+        $data = $this->userService->signInResult($this->request, 'wechat');
+        if (!empty($data['msg'])) {
+            $this->msg = $data['msg'];
+            return $this->returnApi();
+        }
+        $this->code = 200;
+        return $this->returnApi($data);
+    }
 }
