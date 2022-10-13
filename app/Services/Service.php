@@ -81,30 +81,6 @@ class Service
         return $data;
     }
 
-    public function lengthTime($type)
-    {
-        switch ($type) {
-            case 1:
-                $time = strtotime('+1 year');
-                break;
-            case 2:
-                $time = strtotime('+3 month');
-                break;
-            case 3:
-                $time = strtotime('+1 month');
-                break;
-            case 4:
-                $time = strtotime('+1 week');
-                break;
-            case 5:
-                $time = strtotime('+1 day');
-                break;
-            default:
-                $time = time();
-        }
-        return $time - time();
-    }
-
     public function setTag($key, $uid, $value)
     {
         $tag = $this->redis::HGET('tags', $key);
