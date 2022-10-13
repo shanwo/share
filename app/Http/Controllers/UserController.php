@@ -8,6 +8,7 @@
 
 namespace App\Http\Controllers;
 
+use App\External\Weixin\WXBizDataCrypt;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 
@@ -20,6 +21,47 @@ class UserController extends Controller
         parent::__construct($request);
         $this->userService = new UserService();
     }
+
+    private function bindSecret($id)
+    {
+        $secret = json_encode([$id => md5(dechex($id))]);
+        return [
+            'douban'   => $this->passportEncrypt($secret, 'douban'),
+            'douyin'   => $this->passportEncrypt($secret, 'douyin'),
+            'facebook' => $this->passportEncrypt($secret, 'facebook'),
+            'feishu'   => $this->passportEncrypt($secret, 'feishu'),
+            'github'   => $this->passportEncrypt($secret, 'github'),
+            'google'   => $this->passportEncrypt($secret, 'google'),
+            'linkedin' => $this->passportEncrypt($secret, 'linkedin'),
+            'outlook'  => $this->passportEncrypt($secret, 'outlook'),
+            'qq'       => $this->passportEncrypt($secret, 'qq'),
+            'taobao'   => $this->passportEncrypt($secret, 'taobao'),
+            'wechat'   => $this->passportEncrypt($secret, 'wechat'),
+            'weibo'    => $this->passportEncrypt($secret, 'weibo'),
+            'wework'   => $this->passportEncrypt($secret, 'wework'),
+        ];
+    }
+
+    private function getSession($appId, $secret, $jsCode)
+    {
+        $array = [
+            'appid'      => $appId,
+            'secret'     => $secret,
+            'js_code'    => $jsCode,
+            'grant_type' => 'authorization_code'
+        ];
+        $param = http_build_query($array);
+        $url = 'https://api.weixin.qq.com/sns/jscode2session?' . $param;
+        $form['timeout'] = 3;
+        $body = null;
+        $api = $this->client->get($url, $form);
+        if ($api->getStatusCode() == 200) {
+            $body = $api->getBody()->getContents();
+            $body = json_decode($body, true);
+        }
+        return $body;
+    }
+
     public function applets()
     {
         $this->validate([
@@ -169,26 +211,6 @@ class UserController extends Controller
         $data = $this->userService->edit($this->request);
         $this->code = 200;
         return $this->returnApi($data);
-    }
-
-    private function bindSecret($id)
-    {
-        $secret = json_encode([$id => md5(dechex($id))]);
-        return [
-            'douban'   => $this->passportEncrypt($secret, 'douban'),
-            'douyin'   => $this->passportEncrypt($secret, 'douyin'),
-            'facebook' => $this->passportEncrypt($secret, 'facebook'),
-            'feishu'   => $this->passportEncrypt($secret, 'feishu'),
-            'github'   => $this->passportEncrypt($secret, 'github'),
-            'google'   => $this->passportEncrypt($secret, 'google'),
-            'linkedin' => $this->passportEncrypt($secret, 'linkedin'),
-            'outlook'  => $this->passportEncrypt($secret, 'outlook'),
-            'qq'       => $this->passportEncrypt($secret, 'qq'),
-            'taobao'   => $this->passportEncrypt($secret, 'taobao'),
-            'wechat'   => $this->passportEncrypt($secret, 'wechat'),
-            'weibo'    => $this->passportEncrypt($secret, 'weibo'),
-            'wework'   => $this->passportEncrypt($secret, 'wework'),
-        ];
     }
 
     /**

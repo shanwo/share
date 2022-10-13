@@ -22,9 +22,12 @@ Route::prefix('base')->group(function () {
 });
 //用户
 Route::prefix('user')->group(function () {
+    Route::get('applets', 'UserController@applets');
     Route::get('signIn', 'UserController@signIn');
     Route::get('signOut', 'UserController@signOut');
     Route::get('info', 'UserController@info');
     Route::post('edit', 'UserController@edit');
+    Route::get('official', 'UserController@official');
+    Route::get('wechat', 'UserController@wechat');
 });
 
