@@ -66,7 +66,7 @@ class UserController extends Controller
     public function applets()
     {
         $this->validate([
-            'code'           => 'required|alpha_num|max:64',
+            'code'           => 'required|string|max:64',
             'encrypted_data' => 'required|string|max:1024',
             'iv'             => 'required|string|max:32',
             'raw_data'       => 'required|json',
@@ -103,7 +103,7 @@ class UserController extends Controller
             $appData['raw'] = array_merge((array)$appData['raw'], (array)$rawArr);
         }
         $appData['ip'] = $this->request->ip();
-        $uid = $this->service->wechat($appData, 'wxapp');
+        $uid = $this->userService->wechat($appData, 'wxapp');
         $data = $this->userService->info($uid);
         if (!empty($data['api_token'])) $this->service->redis::SETEX('user_tokens:' . $data['api_token'], $this->service->oneDay * 30, $uid);
         $this->code = 200;
