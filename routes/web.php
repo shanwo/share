@@ -14,6 +14,23 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::redirect('/', 'https://shanwo.cc');
+
+//微信公众号验证
+Route::get('MP_verify_wOQevRdcPyMeqMJL.txt', function () {
+    return 'wOQevRdcPyMeqMJL';
+});
+Route::prefix('base')->group(function () {
+//地区信息
+    Route::get('area', 'AreaController@lists');
+//文件上传
+    Route::post('upload', 'UploadController@file');
+//用户反馈
+    Route::post('feedback', 'FeedbackController@add');
+//公众号绑定
+    Route::get('official', 'OfficialController@bind');
+//公众号消息
+    Route::post('official', 'OfficialController@server');
+});
 //用户
 Route::prefix('user')->group(function () {
     Route::post('applets', 'UserController@applets');
