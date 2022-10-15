@@ -93,7 +93,7 @@ class UserService extends Service
         } else {
             $socialite = new SocialiteManager([
                 $name => [
-                    'client_id'     => $config['key'],
+                    'client_id'     => $config['app_id'],
                     'client_secret' => $config['secret'],
                     'redirect'      => $config['callback'],
                 ],
@@ -129,12 +129,7 @@ class UserService extends Service
         $raw = $user['raw'];
         $where[] = ['source', '=', $config['name']];
         $where[] = ['open_id', '=', $raw['openid']];
-        if ($config['name'] == 'official') {
-            $app_id = $config['app_id'];
-        } else {
-            $app_id = $config['key'];
-        }
-        $where[] = ['app_id', '=', $app_id];
+        $where[] = ['app_id', '=', $config['app_id']];
         $userThird = $this->userThirdModel->where($where)->first(['id', 'user_id', 'logins_number']);
         if ($userThird) {
             if (!empty($this->uid) && $this->uid != $userThird['user_id']) {
