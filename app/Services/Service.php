@@ -49,7 +49,7 @@ class Service
     public function configInfo($name)
     {
         $config = $this->redis::GET('config:' . $name);
-        if ($config) $data = json_decode($config, true);
+        $data = json_decode($config, true);
         $data['name'] = $name;
         return $data;
     }
