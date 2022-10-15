@@ -42,11 +42,11 @@ class UserController extends Controller
         ];
     }
 
-    private function getSession($appId, $secret, $jsCode)
+    private function getSession($applets, $jsCode)
     {
         $array = [
-            'appid'      => $appId,
-            'secret'     => $secret,
+            'appid'      => $applets['app_id'],
+            'secret'     => $applets['app_secret'],
             'js_code'    => $jsCode,
             'grant_type' => 'authorization_code'
         ];
@@ -59,13 +59,14 @@ class UserController extends Controller
             $body = $api->getBody()->getContents();
             $body = json_decode($body, true);
         }
+        if (!$body) $body['errmsg'] = '授权操作请求异常';
         return $body;
     }
 
     public function applets()
     {
         $this->validate([
-            'code'           => 'required|string|max:64',
+            'code'           => 'required|alpha_num|max:64',
             'encrypted_data' => 'required|string|max:1024',
             'iv'             => 'required|string|max:32',
             'raw_data'       => 'required|json',
@@ -74,54 +75,37 @@ class UserController extends Controller
         if ($this->msg) {
             return $this->returnApi();
         }
-
-        $option = $this->optionService->info('tencent_app_settings');
-        $appSettings = json_decode($option['option_value'], true);
-        $appId = $this->request->header('xcx-app-appid', $this->request->server->get('xcx-app-appid'));
-        if (empty($appSettings['apps'][$appId])) {
-            $this->msg = '小程序不存在';
+        $appId = $this->request->header('appid');
+//        $appId = $this->request->header('appid', $this->request->server->get('appid'));
+        $applets = $this->service->redis::GET('config:wxapp');
+        $applets = json_decode($applets,true);
+        if (empty($applets['app_id']) || $applets['app_id'] != $appId) {
+            $this->msg = '配置获取失败';
             return $this->returnApi();
         }
-        $type = $this->request->header('xcx-device-type', $this->request->server->get('xcx-device-type'));
-        $secret = $appSettings['apps'][$appId]['app_secret'];
         $jsCode = $this->request->input('code');
-        $body = $this->getSession($appId, $secret, $jsCode, $type);
-        if (!$body) {
-            $this->msg = '授权操作失败';
+        $body = $this->getSession($applets, $jsCode);
+        if (!empty($body['errmsg'])) {
+            $this->msg = $body['errmsg'];
             return $this->returnApi();
         }
         $encrypted_data = $this->request->input('encrypted_data');
         $iv = $this->request->input('iv');
         $pc = new WXBizDataCrypt($appId, $body['session_key']);
-        $res = $pc->decryptData($encrypted_data, $iv, $appData);
+        $res = $pc->decryptData($encrypted_data, $iv, $appData['raw']);
         if ($res) {
             $this->msg = '授权验证失败';
             return $this->returnApi();
         }
-        $rawJson = $this->request->input('raw_data', '');
+        $rawJson = $this->request->input('raw_data');
         if ($rawJson) {
             $rawArr = json_decode($rawJson);
-            $appData = (object)array_merge((array)$appData, (array)$rawArr);
+            $appData['raw'] = array_merge((array)$appData['raw'], (array)$rawArr);
         }
-        $appData->type = $type;
-        $appData->ip = $this->request->ip();
-        $appData = json_decode(json_encode($appData), true);
-        $third = $this->userService->thirdInfo($appData);
-        if ($third) {
-            $this->userService->thirdEdit($appData, $third);
-        } else {
-            $third['user_id'] = $this->userService->add($appData);
-            $third['id'] = $this->userService->thirdAdd($appData, $third['user_id']);
-        }
-        $data = $this->userService->info(['id' => $third['user_id']]);
-        if (!$data['user_status']) {
-            $this->msg = '账号涉嫌违规，禁止登录';
-            return $this->returnApi();
-        }
-        $token = $this->userService->token($third['user_id'], $type);
-        $data['token'] = $token;
-        $arr = [$third['user_id'] => md5(dechex($third['user_id']))];
-        $this->service->redis::setex('user:' . $token, 60 * 60 * 24 * 180, json_encode($arr));
+        $appData['ip'] = $this->request->ip();
+        $uid = $this->service->wechat($appData, 'wxapp');
+        $data = $this->userService->info($uid);
+        if (!empty($data['api_token'])) $this->service->redis::SETEX('user_tokens:' . $data['api_token'], $this->service->oneDay * 30, $uid);
         $this->code = 200;
         return $this->returnApi($data);
     }

@@ -113,9 +113,7 @@ class UserService extends Service
             }
             $user = $this->driver($configName)->userFromCode($request['code']);
             $user['ip'] = $request->ip();
-            $config = $this->configInfo($configName);
-            $config['name'] = $configName;
-            $uid = $this->wechat($user, $config);
+            $uid = $this->wechat($user, $configName);
             $data = $this->info($uid);
             if (!empty($data['api_token'])) $this->redis::SETEX('user_tokens:' . $data['api_token'], $this->oneDay * 30, $uid);
         } catch (AuthorizeFailedException $e) {
@@ -124,8 +122,9 @@ class UserService extends Service
         return $data;
     }
 
-    public function wechat($user, $config)
+    public function wechat($user, $configName)
     {
+        $config = $this->configInfo($configName);
         $raw = $user['raw'];
         $where[] = ['source', '=', $config['name']];
         $where[] = ['open_id', '=', $raw['openid']];
@@ -166,7 +165,7 @@ class UserService extends Service
                 'union_id' => $raw['unionid'],
                 'open_id'  => $raw['openid'],
                 'source'   => $config['name'],
-                'app_id'   => $app_id,
+                'app_id'   => $config['app_id'],
                 'login_ip' => $user['ip'],
                 'raw'      => json_encode($raw)
             ];
