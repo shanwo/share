@@ -15,10 +15,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', 'https://shanwo.cc');
 
-//微信公众号验证
-Route::get('MP_verify_wOQevRdcPyMeqMJL.txt', function () {
-    return 'wOQevRdcPyMeqMJL';
-});
 Route::prefix('base')->group(function () {
 //地区信息
     Route::get('area', 'AreaController@lists');
