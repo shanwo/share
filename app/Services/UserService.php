@@ -125,7 +125,7 @@ class UserService extends Service
     public function wechat($user, $configName)
     {
         $config = $this->configInfo($configName);
-        $raw = array_change_key_case($user['raw'],CASE_LOWER);
+        $raw = array_change_key_case($user['raw'], CASE_LOWER);
         $where[] = ['source', '=', $config['name']];
         $where[] = ['open_id', '=', $raw['openid']];
         $where[] = ['app_id', '=', $config['app_id']];
@@ -144,7 +144,7 @@ class UserService extends Service
         } else {
             if ($raw['unionid']) {
                 $userThird = $this->userThirdModel->where('union_id', $raw['unionid'])->first(['id', 'user_id']);
-                if($userThird) $this->uid = $userThird['user_id'];
+                if ($userThird) $this->uid = $userThird['user_id'];
             }
             $token = Crypt::encryptString($raw['openid']);
             if (!$this->uid) {
