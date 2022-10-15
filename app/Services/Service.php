@@ -7,6 +7,7 @@
 
 namespace App\Services;
 
+use App\Models\ConfigModel;
 use App\Models\TagModel;
 use App\Models\UserTagModel;
 use Illuminate\Support\Facades\Redis;
@@ -24,19 +25,32 @@ class Service
     public $size = 10;
     public $oneDay = 86400;
     protected $tagModel;
+    protected $configModel;
     protected $userTagModel;
 
     public function __construct()
     {
         $this->redis = new Redis();
         $this->tagModel = new TagModel();
+        $this->configModel = new ConfigModel();
         $this->userTagModel = new UserTagModel();
     }
 
     public function configInfo($name)
     {
+        $data = [];
         $config = $this->redis::GET('config:' . $name);
-        $data = json_decode($config, true);
+        if ($config) {
+            $data = json_decode($config, true);
+        } else {
+            $lists = $this->configModel->where(['autoload' => 1, 'is_delete' => Service::DELETE_NO])->get()->toArray();
+            foreach ($lists as $k => $v) {
+                $this->redis::SET('config:' . $v['option_name'], $v['option_value']);
+                if ($v['option_name'] == $name) {
+                    $data = json_decode($v['option_value'], true);
+                }
+            }
+        }
         $data['name'] = $name;
         return $data;
     }
