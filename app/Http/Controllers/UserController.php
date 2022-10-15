@@ -76,7 +76,6 @@ class UserController extends Controller
             return $this->returnApi();
         }
         $appId = $this->request->header('appid');
-//        $appId = $this->request->header('appid', $this->request->server->get('appid'));
         $applets = $this->service->redis::GET('config:wxapp');
         $applets = json_decode($applets,true);
         if (empty($applets['app_id']) || $applets['app_id'] != $appId) {

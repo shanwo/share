@@ -144,13 +144,13 @@ class UserService extends Service
         } else {
             if ($raw['unionid']) {
                 $userThird = $this->userThirdModel->where('union_id', $raw['unionid'])->first(['id', 'user_id']);
-                $this->uid = $userThird['user_id'];
+                if($userThird) $this->uid = $userThird['user_id'];
             }
             $token = Crypt::encryptString($raw['openid']);
             if (!$this->uid) {
                 $insertUser = [
                     'nickname'  => htmlspecialchars($raw['nickname']),
-                    'sex'       => $raw['sex'],
+                    'sex'       => $raw['sex'] ?? $raw['gender'] ?? 0,
                     'avatar'    => $raw['headimgurl'] ?? 'https://cdn.shanwo.cc/img/avatar.jpg',
                     'api_token' => $token
                 ];
@@ -167,7 +167,7 @@ class UserService extends Service
                 'source'   => $config['name'],
                 'app_id'   => $config['app_id'],
                 'login_ip' => $user['ip'],
-                'raw'      => json_encode($raw)
+                'original' => json_encode($raw)
             ];
             $this->userThirdModel->insertGetId($insertThird);
         }
