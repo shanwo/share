@@ -151,7 +151,7 @@ class UserService extends Service
                 $insertUser = [
                     'nickname'  => htmlspecialchars($raw['nickname']),
                     'sex'       => $raw['sex'] ?? $raw['gender'] ?? 0,
-                    'avatar'    => $raw['headimgurl'] ?? 'https://cdn.shanwo.cc/img/avatar.jpg',
+                    'avatar'    => $raw['headimgurl'] ?? $raw['avatarurl'] ?? 'https://cdn.shanwo.cc/img/avatar.jpg',
                     'api_token' => $token
                 ];
                 $this->uid = $this->userModel->insertGetId($insertUser);
