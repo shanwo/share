@@ -125,7 +125,7 @@ class UserService extends Service
     public function wechat($user, $configName)
     {
         $config = $this->configInfo($configName);
-        $raw = $user['raw'];
+        $raw = array_change_key_case($user['raw'],CASE_LOWER);
         $where[] = ['source', '=', $config['name']];
         $where[] = ['open_id', '=', $raw['openid']];
         $where[] = ['app_id', '=', $config['app_id']];
