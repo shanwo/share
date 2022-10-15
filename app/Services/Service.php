@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Redis;
 
 class Service
 {
+    const ORDER_CREATE    = 10;
+    const ORDER_CANCEL    = 20;
+    const ORDER_SUCCESS   = 30;
+    const ORDER_FAIL      = 40;
+    const ORDER_REFUND    = 50;
     const USER_ENABLE     = 1;
     const USER_DISABLE    = 2;
     const DELETE_YES      = -1;
