@@ -38,7 +38,7 @@ class UserService extends Service
             $info = $this->userModel->whereKey($id)->first();
             if ($info['type'] == Service::USER_DISABLE) return ['msg' => '当前账户已被禁用，不可登录'];
             $info['contact'] = json_decode($info['contact'], true);
-            $info['third'] = $this->userThirdModel->select('id', 'logins_number', 'source', 'open_id', 'login_ip', 'created_at')->where(['user_id' => $id, 'status' => 1])->get()->toArray();
+            $info['third'] = $this->userThirdModel->select('id', 'logins_number', 'source', 'open_id', 'login_ip', 'created_at')->where(['user_id' => $id, 'status' => Service::ENABLE])->get()->toArray();
             $this->redis::SET('user_infos:' . $id, json_encode($info, JSON_UNESCAPED_UNICODE));
         }
         return $info;
@@ -136,7 +136,7 @@ class UserService extends Service
             }
             $update = [
                 'login_ip'      => $user['ip'],
-                'status'        => 1,
+                'status'        => Service::ENABLE,
                 'logins_number' => $userThird['logins_number'] + 1
             ];
             $this->userThirdModel->whereKey($userThird['id'])->update($update);
@@ -157,7 +157,7 @@ class UserService extends Service
                 $this->uid = $this->userModel->insertGetId($insertUser);
             } else {
                 $this->userModel->whereKey($this->uid)->update(['api_token' => $token]);
-                $this->userThirdModel->whereKey($userThird['id'])->update(['status' => 1]);
+                $this->userThirdModel->whereKey($userThird['id'])->update(['status' => Service::ENABLE]);
             }
             $insertThird = [
                 'user_id'  => $this->uid,

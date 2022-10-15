@@ -45,7 +45,7 @@ class Service
     {
         $tag = $this->redis::HGET('tags', $key);
         if (!$tag) {
-            $lists = $this->tagModel->select('id', 'mark')->where(['status' => 1, 'is_delete' => Service::DELETE_NO])->get()->toArray();
+            $lists = $this->tagModel->select('id', 'mark')->where(['status' => Service::ENABLE, 'is_delete' => Service::DELETE_NO])->get()->toArray();
             foreach ($lists as $k => $v) {
                 if ($v['mark'] == $key) {
                     $tag = $v['id'];
