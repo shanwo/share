@@ -37,12 +37,4 @@ Route::prefix('user')->group(function () {
     Route::get('official', 'UserController@official');
     Route::get('wechat', 'UserController@wechat');
 });
-//支付
-Route::prefix('pay')->group(function () {
-    Route::get('lists', 'PayController@lists');
-    Route::post('send', 'PayController@send');
-    Route::post('result', 'PayController@result');
-    Route::post('payment', 'PayController@payment');
-    Route::post('refund', 'PayController@refund');
-});
 

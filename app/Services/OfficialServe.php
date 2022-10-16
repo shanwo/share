@@ -6,6 +6,7 @@ use App\Models\FeedbackModel;
 use App\Models\ReplyModel;
 use App\Models\UserThirdModel;
 use EasyWeChat\Pay\Application;
+use GuzzleHttp\Client;
 
 class OfficialServe extends Service
 {
@@ -87,31 +88,24 @@ class OfficialServe extends Service
         return "小闪搞没懂你的意思哇[委屈]\n如果你有什么话，可以这样告诉我：\n#酱紫#[想说的话]\n例如：#酱紫#期待新功能哦";
     }
 
-    private function pay($pay, $uid)
+    private function swpay($pay, $uid)
     {
-        $config = $this->configInfo('payment');
-        $config['private_key']= env('PRIVATE_KEY');
-        $config['certificate']= env('CERTIFICATE');
-        $payment = new Application($config);
-        $info = json_decode($pay, true);
-        $userInfo = $this->redis::GET('user_infos:' . $uid);
-        $order_sn = dechex(time()) . rand(10, 99) . mb_substr(sprintf("%04d", $uid), -4) . rand(10, 99);
-        $total_fee = $info['original_price'];
-        if ($info['activity_price']) $total_fee = $info['activity_price'];
-        $body = [
-            'appid'        => $payment->getConfig()->get('app_id'),
-            'mchid'        => $payment->getConfig()->get('mch_id'),
-            'description'  => $info['name'] . ' - 会员购买',
-            'out_trade_no' => $order_sn,
-            'notify_url'   => $payment->getConfig()->get('notify_url'),
-            'amount'       => [
-                'total'    => $total_fee,
-                'currency' => 'CNY'
-            ],
-        ];
-        $data = $payment->getClient()->postJson('v3/pay/transactions/native', $body)->toArray();
-        $this->redis::SETEX('pay_order:' . $order_sn, $this->oneDay / 24, json_encode(['pay' => $info, 'user' => json_decode($userInfo)], JSON_UNESCAPED_UNICODE));
-        return $data['code_url'];
+        $user = $this->redis::GET('user_infos:' . $uid);
+        $user = json_decode($user);
+        $info = json_decode($pay);
+        $form['timeout'] = 3;
+        $form['json'] = ['id' => $info->id, 'type' => 'NATIVE', 'channel' => $info->channel];
+        $form['headers'] = ['Authorization' => ['Bearer ' . $user->api_token]];
+        $url = env('APP_URL') . '/swpay/send';
+        $api = (new Client())->post($url, $form);
+        if ($api->getStatusCode() == 200) {
+            $body = $api->getBody()->getContents();
+            $data = json_decode($body, true);
+            if (!empty($data['code']) && $data['code'] == 200) {
+                return $data['code_url'];
+            }
+        }
+        return '发起支付失败';
     }
 
     /**
