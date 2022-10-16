@@ -5,10 +5,10 @@ namespace App\Services;
 use App\Models\FeedbackModel;
 use App\Models\ReplyModel;
 use App\Models\UserThirdModel;
+use EasyWeChat\Pay\Application;
 
 class OfficialServe extends Service
 {
-    protected $payService;
     protected $replyModel;
     protected $feedbackModel;
     protected $userThirdModel;
@@ -89,9 +89,28 @@ class OfficialServe extends Service
 
     private function pay($pay, $uid)
     {
+        $config = $this->configInfo('payment');
+        $config['private_key']= env('PRIVATE_KEY');
+        $config['certificate']= env('CERTIFICATE');
+        $payment = new Application($config);
         $info = json_decode($pay, true);
         $userInfo = $this->redis::GET('user_infos:' . $uid);
-        $data = $this->payService->send($info, json_decode($userInfo));
+        $order_sn = dechex(time()) . rand(10, 99) . mb_substr(sprintf("%04d", $uid), -4) . rand(10, 99);
+        $total_fee = $info['original_price'];
+        if ($info['activity_price']) $total_fee = $info['activity_price'];
+        $body = [
+            'appid'        => $payment->getConfig()->get('app_id'),
+            'mchid'        => $payment->getConfig()->get('mch_id'),
+            'description'  => $info['name'] . ' - 会员购买',
+            'out_trade_no' => $order_sn,
+            'notify_url'   => $payment->getConfig()->get('notify_url'),
+            'amount'       => [
+                'total'    => $total_fee,
+                'currency' => 'CNY'
+            ],
+        ];
+        $data = $payment->getClient()->postJson('v3/pay/transactions/native', $body)->toArray();
+        $this->redis::SETEX('pay_order:' . $order_sn, $this->oneDay / 24, json_encode(['pay' => $info, 'user' => json_decode($userInfo)], JSON_UNESCAPED_UNICODE));
         return $data['code_url'];
     }
 
