@@ -101,9 +101,8 @@ class OfficialServe extends Service
         if ($api->getStatusCode() == 200) {
             $body = $api->getBody()->getContents();
             $data = json_decode($body, true);
-            if (!empty($data['code']) && $data['code'] == 200) {
-                return $data['code_url'];
-            }
+            if ($data['code'] == 200) return $data['code_url'];
+            return $data['msg'];
         }
         return '发起支付失败';
     }
