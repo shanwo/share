@@ -14,8 +14,6 @@ use Illuminate\Support\Facades\Redis;
 
 class Service
 {
-    const USER_ENABLE     = 1;
-    const USER_DISABLE    = 2;
     const DELETE_YES      = -1;
     const DELETE_NO       = 1;
     const ENABLE          = 1;
