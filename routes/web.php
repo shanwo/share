@@ -19,6 +19,7 @@ Route::prefix('base')->group(function () {
 //地区信息
     Route::get('area', 'AreaController@lists');
 //文件上传
+    Route::get('secret', 'UploadController@secret');
     Route::post('upload', 'UploadController@file');
 //用户反馈
     Route::post('feedback', 'FeedbackController@add');

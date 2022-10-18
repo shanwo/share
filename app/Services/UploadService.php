@@ -9,25 +9,19 @@ namespace App\Services;
 
 use App\Models\UploadModel;
 use Qcloud\Cos\Client;
+use QCloud\COSSTS\Sts;
 
 class UploadService extends Service
 {
     protected $uploadModel;
-    private $oss;
+    private $config;
     private $domain = 'https://cdn.shanwo.cc/';
 
     public function __construct()
     {
         parent::__construct();
         $this->uploadModel = new UploadModel();
-        $config = $this->configInfo('oss');
-        $this->oss = new Client([
-            'region'      => 'ap-beijing',
-            'credentials' => [
-                'secretId'  => $config['key'],
-                'secretKey' => $config['secret'],
-            ]
-        ]);
+        $this->config = $this->configInfo('oss');
     }
 
     /**
@@ -70,6 +64,52 @@ class UploadService extends Service
     }
 
     /**
+     * 前端上传签名
+     * @return array
+     * @throws \Exception
+     */
+    public function secret()
+    {
+        $path = '/'.env('APP_NAME').'/';
+        if (strcmp(env('APP_ENV'), 'prod') != 0) {
+            $path .= app('env').'/';
+        }
+        $path .= 'picture' . date('/Y/m/*');
+        $sts = new Sts();
+
+        $config = [
+            'url' => 'https://sts.tencentcloudapi.com/',
+            'domain' => 'sts.tencentcloudapi.com',
+            'proxy' => '',
+//            'secretId' => $this->config['app_id'], // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+//            'secretKey' => $this->config['secret'], // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            'secretId' => 'AKIDhIk172aRs7B5oLbwzqW1LUREqHXc4HrH', // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            'secretKey' => 'Mr5C7tTr460kIfsttjR0OabR5YpwrbAY', // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            'bucket' => 'sw-cdn-1255862984', // 换成你的 bucket
+            'region' => 'ap-beijing', // 换成 bucket 所在园区
+            'durationSeconds' => 3600, // 密钥有效期
+            // 允许操作（上传）的对象前缀，可以根据自己网站的用户登录态判断允许上传的目录，例子： user1/* 或者 * 或者a.jpg
+            // 请注意当使用 * 时，可能存在安全风险，详情请参阅：https://cloud.tencent.com/document/product/436/40265
+            //            'allowPrefix' => $path,
+            'allowPrefix' => '/*',
+            // 密钥的权限列表。简单上传和分片需要以下的权限，其他权限列表请看 https://cloud.tencent.com/document/product/436/31923
+            'allowActions' => [
+                // 所有 action 请看文档 https://cloud.tencent.com/document/product/436/31923
+                // 简单上传
+                'name/cos:PutObject',               //上传一个对象至存储桶
+                'name/cos:PostObject',              //使用表单请求上传对象
+//                // 分片上传
+//                'name/cos:InitiateMultipartUpload', //初始化分块上传
+//                'name/cos:ListMultipartUploads',    //查询正在进行中的分块上传信息
+//                'name/cos:ListParts',               //查询特定分块上传操作中的已上传的块
+//                'name/cos:UploadPart',              //分块上传文件
+//                'name/cos:CompleteMultipartUpload'  //完成整个文件的分块上传
+            ]
+        ];
+        return $sts->getTempKeys($config);
+    }
+
+    /**
      * 上传文件
      * @param $request
      * @return mixed
@@ -88,7 +128,14 @@ class UploadService extends Service
         if ($ext) {
             $name = $name . '.' . $ext;
         }
-        $this->oss->upload('cdn-1305937303', $path . $name, $file->getRealPath());
+        $oss = new Client([
+            'region'      => 'ap-beijing',
+            'credentials' => [
+                'secretId'  => $this->config['app_id'],
+                'secretKey' => $this->config['secret'],
+            ]
+        ]);
+        $oss->upload('cdn-1305937303', $path . $name, $file->getRealPath());
         $data['url'] = $this->domain . $path . $name;
         $insert = [
             'user_id' => $request->user()->id,
