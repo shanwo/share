@@ -66,7 +66,7 @@ class UserController extends Controller
             $data = $this->userService->info($uid);
             if (!empty($data['api_token'])) $this->service->redis::SETEX('user_tokens:' . $data['api_token'], $this->service->oneDay * 30, $uid);
             $this->code = 200;
-        } catch (\ErrorException $error) {
+        } catch (\Exception $error) {
             $this->msg = $error->getMessage();
         }
         return $this->returnApi($data);
