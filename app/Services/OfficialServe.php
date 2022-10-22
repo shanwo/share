@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\FeedbackModel;
 use App\Models\ReplyModel;
 use App\Models\UserThirdModel;
-use EasyWeChat\Pay\Application;
 use GuzzleHttp\Client;
 
 class OfficialServe extends Service
