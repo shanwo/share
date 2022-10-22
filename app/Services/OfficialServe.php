@@ -95,7 +95,7 @@ class OfficialServe extends Service
         $form['timeout'] = 3;
         $form['json'] = ['id' => $info->id, 'type' => 'NATIVE', 'channel' => $info->channel];
         $form['headers'] = ['Authorization' => ['Bearer ' . $user->api_token]];
-        $url = env('APP_URL') . '/swpay/send';
+        $url = env('APP_URL') . '/sw/pay/send';
         $api = (new Client())->post($url, $form);
         if ($api->getStatusCode() == 200) {
             $body = $api->getBody()->getContents();
