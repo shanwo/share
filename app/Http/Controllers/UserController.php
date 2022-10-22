@@ -66,26 +66,30 @@ class UserController extends Controller
     public function applets()
     {
         $this->validate([
-            'code'           => 'required|string|max:64',
+            'code' => 'required|string|max:64',
         ]);
         if ($this->msg) {
             return $this->returnApi();
         }
+        $data = [];
         $appId = $this->request->header('appid');
         $applets = $this->service->redis::GET('config:wxapp');
-        $applets = json_decode($applets,true);
+        $applets = json_decode($applets, true);
         if (empty($applets['app_id']) || $applets['app_id'] != $appId) {
             $this->msg = '配置获取失败';
             return $this->returnApi();
         }
-        $miniApp = new Application($applets);
-        $utils = $miniApp->getUtils();
-        $appData['raw'] = $utils->codeToSession($this->request->input('code'));
-        $appData['ip'] = $this->request->ip();
-        $uid = $this->userService->wechat($appData, 'wxapp');
-        $data = $this->userService->info($uid);
-        if (!empty($data['api_token'])) $this->service->redis::SETEX('user_tokens:' . $data['api_token'], $this->service->oneDay * 30, $uid);
-        $this->code = 200;
+        try {
+            $miniApp = new Application($applets);
+            $appData['raw'] = $miniApp->getUtils()->codeToSession($this->request->input('code'));
+            $appData['ip'] = $this->request->ip();
+            $uid = $this->userService->wechat($appData, 'wxapp');
+            $data = $this->userService->info($uid);
+            if (!empty($data['api_token'])) $this->service->redis::SETEX('user_tokens:' . $data['api_token'], $this->service->oneDay * 30, $uid);
+            $this->code = 200;
+        } catch (\ErrorException $error) {
+            $this->msg = $error->getMessage();
+        }
         return $this->returnApi($data);
     }
 
@@ -115,7 +119,7 @@ class UserController extends Controller
                 }
             }
         }
-        if($this->request->input('jump',0)) return redirect($url, 301);
+        if ($this->request->input('jump', 0)) return redirect($url, 301);
         $this->code = 200;
         return $this->returnApi(['redirect_url' => $url]);
     }
