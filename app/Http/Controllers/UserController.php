@@ -135,6 +135,7 @@ class UserController extends Controller
                 }
             }
         }
+        if($this->request->input('jump',0)) return redirect($url, 301);
         $this->code = 200;
         return $this->returnApi(['redirect_url' => $url]);
     }
