@@ -42,27 +42,6 @@ class UserController extends Controller
         ];
     }
 
-    private function getSession($applets, $jsCode)
-    {
-        $array = [
-            'appid'      => $applets['app_id'],
-            'secret'     => $applets['app_secret'],
-            'js_code'    => $jsCode,
-            'grant_type' => 'authorization_code'
-        ];
-        $param = http_build_query($array);
-        $url = 'https://api.weixin.qq.com/sns/jscode2session?' . $param;
-        $form['timeout'] = 3;
-        $body = null;
-        $api = $this->client->get($url, $form);
-        if ($api->getStatusCode() == 200) {
-            $body = $api->getBody()->getContents();
-            $body = json_decode($body, true);
-        }
-        if (!$body) $body['errmsg'] = '授权操作请求异常';
-        return $body;
-    }
-
     public function applets()
     {
         $this->validate([
