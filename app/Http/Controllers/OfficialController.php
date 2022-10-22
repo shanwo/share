@@ -21,6 +21,7 @@ class OfficialController extends Controller
 
     public function bind()
     {
+        $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':param', $this->service->oneDay / 21, json_encode($this->request->all()));
         $this->validate([
             'echostr'   => 'required|alpha_num|between:16,32',
             'signature' => 'required|alpha_num|between:32,64',
@@ -33,6 +34,7 @@ class OfficialController extends Controller
             'timestamp' => '时间戳',
         ]);
         if ($this->msg) {
+            $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':validate', $this->service->oneDay / 12, $this->msg);
             return $this->returnApi();
         }
         return $this->official->getServer()->serve();
@@ -40,6 +42,7 @@ class OfficialController extends Controller
 
     public function server()
     {
+        $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':param', $this->service->oneDay / 12, json_encode($this->request->all()));
         $this->validate([
             'nonce'         => 'required|integer|digits_between:8,16',
             'signature'     => 'required|alpha_num|between:32,64',
@@ -56,10 +59,10 @@ class OfficialController extends Controller
             'msg_signature' => '消息体签名',
         ]);
         if ($this->msg) {
+            $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':validate', $this->service->oneDay / 12, $this->msg);
             return $this->returnApi();
         }
-        $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':xml', $this->service->oneDay / 2, file_get_contents("php://input"));
-        $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':param', $this->service->oneDay / 2, json_encode($this->request->all()));
+        $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':xml', $this->service->oneDay / 12, file_get_contents("php://input"));
         return $this->official->getServer()->with(function ($message) {
             $config = $this->official->getConfig();
             $config['name'] = 'official';
@@ -69,7 +72,7 @@ class OfficialController extends Controller
                         'query' => ['openid' => $this->request->input('openid')]
                     ])->toArray();
                     $user['ip'] = $this->request->ip();
-                    $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':user', $this->service->oneDay / 2, json_encode($user));
+                    $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':user', $this->service->oneDay / 12, json_encode($user));
                     return $this->officialServe->eventType($message, $user, $config);
                 case 'text':
                     return $this->officialServe->textType($message, $config);
