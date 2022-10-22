@@ -8,8 +8,8 @@
 
 namespace App\Http\Controllers;
 
-use App\External\Weixin\WXBizDataCrypt;
 use App\Services\UserService;
+use EasyWeChat\MiniApp\Application;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -67,10 +67,6 @@ class UserController extends Controller
     {
         $this->validate([
             'code'           => 'required|string|max:64',
-            'encrypted_data' => 'required|string|max:1024',
-            'iv'             => 'required|string|max:32',
-            'raw_data'       => 'required|json',
-            'signature'      => 'required|alpha_num|max:64',
         ]);
         if ($this->msg) {
             return $this->returnApi();
@@ -82,25 +78,9 @@ class UserController extends Controller
             $this->msg = '配置获取失败';
             return $this->returnApi();
         }
-        $jsCode = $this->request->input('code');
-        $body = $this->getSession($applets, $jsCode);
-        if (!empty($body['errmsg'])) {
-            $this->msg = $body['errmsg'];
-            return $this->returnApi();
-        }
-        $encrypted_data = $this->request->input('encrypted_data');
-        $iv = $this->request->input('iv');
-        $pc = new WXBizDataCrypt($appId, $body['session_key']);
-        $res = $pc->decryptData($encrypted_data, $iv, $appData['raw']);
-        if ($res) {
-            $this->msg = '授权验证失败';
-            return $this->returnApi();
-        }
-        $rawJson = $this->request->input('raw_data');
-        if ($rawJson) {
-            $rawArr = json_decode($rawJson);
-            $appData['raw'] = array_merge((array)$appData['raw'], (array)$rawArr);
-        }
+        $miniApp = new Application($applets);
+        $utils = $miniApp->getUtils();
+        $appData['raw'] = $utils->codeToSession($this->request->input('code'));
         $appData['ip'] = $this->request->ip();
         $uid = $this->userService->wechat($appData, 'wxapp');
         $data = $this->userService->info($uid);

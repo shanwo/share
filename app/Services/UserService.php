@@ -146,9 +146,10 @@ class UserService extends Service
                 if ($userThird) $this->uid = $userThird['user_id'];
             }
             $token = Crypt::encryptString($raw['openid']);
+            $nickname = htmlspecialchars($raw['nickname']) ?? '新用户'.rand(1000, 9999);
             if (!$this->uid) {
                 $insertUser = [
-                    'nickname'  => htmlspecialchars($raw['nickname']),
+                    'nickname'  => $nickname,
                     'sex'       => $raw['sex'] ?? $raw['gender'] ?? 0,
                     'avatar'    => $raw['headimgurl'] ?? $raw['avatarurl'] ?? 'https://cdn.shanwo.cc/img/avatar.jpg',
                     'api_token' => $token
@@ -160,7 +161,7 @@ class UserService extends Service
             }
             $insertThird = [
                 'user_id'  => $this->uid,
-                'nickname' => htmlspecialchars($raw['nickname']),
+                'nickname' => $nickname,
                 'union_id' => $raw['unionid'],
                 'open_id'  => $raw['openid'],
                 'source'   => $config['name'],
