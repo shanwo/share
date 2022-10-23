@@ -132,8 +132,8 @@ class UserController extends Controller
     {
         $this->validate([
             'area_id'        => 'nullable|integer|gt:0|exists:cn_area,id',
-            'avatar'         => 'required|url|max:128',
-            'nickname'       => 'required|string|between:2,32',
+            'avatar'         => 'nullable|url|max:128',
+            'nickname'       => 'nullable|string|between:2,32',
             'sex'            => 'nullable|integer|between:0,2',
             'birthday'       => 'nullable|date_format:Y-m-d|after_or_equal:1950-01-01|before_or_equal:' . date('Y-m-01', strtotime('-1 month')),
             'contact'        => 'nullable|array',

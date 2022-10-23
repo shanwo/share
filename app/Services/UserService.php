@@ -52,15 +52,15 @@ class UserService extends Service
             [$province, $city] = explode('-', $area['merger_name']);
             $this->setTag('province', $uid, $province);
             $this->setTag('city', $uid, $city);
+            $update['area_id'] = $aid;
+            $update['merger_name'] = $area['merger_name'];
         }
+        $nickname = $request->input('nickname','');
+        if($nickname) $update['nickname'] = $nickname;
+        $avatar = $request->input('avatar','');
+        if($avatar) $update['avatar'] = $avatar;
         $contact = $request->input('contact', []);
-        $update = [
-            'nickname'    => $request->input('nickname'),
-            'avatar'      => $request->input('avatar'),
-            'area_id'     => $aid,
-            'merger_name' => $area['merger_name'] ?? '',
-            'contact'     => json_encode($contact, JSON_UNESCAPED_UNICODE),
-        ];
+        if($contact) $update['contact'] = json_encode($contact, JSON_UNESCAPED_UNICODE);
         $sex = $request->input('sex', '');
         if (is_numeric($sex)) {
             $this->setTag('sex', $uid, $sex);
