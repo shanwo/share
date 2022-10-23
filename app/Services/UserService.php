@@ -46,17 +46,19 @@ class UserService extends Service
     public function edit($request)
     {
         $uid = $request->user()->id;
-        $aid = $request->input('area_id');
-        $area = $this->areaModel->whereKey($aid)->first();
-        [$province, $city] = explode('-', $area['merger_name']);
-        $this->setTag('province', $uid, $province);
-        $this->setTag('city', $uid, $city);
+        $aid = $request->input('area_id',0);
+        if($aid) {
+            $area = $this->areaModel->whereKey($aid)->first();
+            [$province, $city] = explode('-', $area['merger_name']);
+            $this->setTag('province', $uid, $province);
+            $this->setTag('city', $uid, $city);
+        }
         $contact = $request->input('contact', []);
         $update = [
             'nickname'    => $request->input('nickname'),
             'avatar'      => $request->input('avatar'),
             'area_id'     => $aid,
-            'merger_name' => $area['merger_name'],
+            'merger_name' => $area['merger_name'] ?? '',
             'contact'     => json_encode($contact, JSON_UNESCAPED_UNICODE),
         ];
         $sex = $request->input('sex', '');
@@ -146,7 +148,8 @@ class UserService extends Service
                 if ($userThird) $this->uid = $userThird['user_id'];
             }
             $token = Crypt::encryptString($raw['openid']);
-            $nickname = htmlspecialchars($raw['nickname']) ?? '新用户'.rand(1000, 9999);
+            $nickname = '游客'.rand(10000, 99999);
+            if(!empty($raw['nickname'])) $nickname = htmlspecialchars($raw['nickname']);
             if (!$this->uid) {
                 $insertUser = [
                     'nickname'  => $nickname,

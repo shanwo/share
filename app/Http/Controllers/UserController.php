@@ -131,7 +131,7 @@ class UserController extends Controller
     public function edit()
     {
         $this->validate([
-            'area_id'        => 'required|integer|gt:0|exists:cn_area,id',
+            'area_id'        => 'nullable|integer|gt:0|exists:cn_area,id',
             'avatar'         => 'required|url|max:128',
             'nickname'       => 'required|string|between:2,32',
             'sex'            => 'nullable|integer|between:0,2',
