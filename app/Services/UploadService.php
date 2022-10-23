@@ -68,45 +68,45 @@ class UploadService extends Service
      * @return array
      * @throws \Exception
      */
-    public function secret()
+    public function secret($user)
     {
-        $path = '/'.env('APP_NAME').'/';
+        $path = '/';
         if (strcmp(env('APP_ENV'), 'prod') != 0) {
-            $path .= app('env').'/';
+            $path .= app('env') . '/';
         }
-        $path .= 'picture' . date('/Y/m/*');
+        $path .= 'picture/' . $user->id . date('/Y-m/d/*');
         $sts = new Sts();
 
         $config = [
-            'url' => 'https://sts.tencentcloudapi.com/',
-            'domain' => 'sts.tencentcloudapi.com',
-            'proxy' => '',
-//            'secretId' => $this->config['app_id'], // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
-//            'secretKey' => $this->config['secret'], // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
-            'secretId' => 'AKIDhIk172aRs7B5oLbwzqW1LUREqHXc4HrH', // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
-            'secretKey' => 'Mr5C7tTr460kIfsttjR0OabR5YpwrbAY', // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
-            'bucket' => 'sw-cdn-1255862984', // 换成你的 bucket
-            'region' => 'ap-beijing', // 换成 bucket 所在园区
+            'url'             => 'https://sts.tencentcloudapi.com/',
+            'domain'          => 'sts.tencentcloudapi.com',
+            'proxy'           => '',
+            //            'secretId' => $this->config['app_id'], // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            //            'secretKey' => $this->config['secret'], // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            'secretId'        => 'AKID2xd2B4hGmCzavzqdMtFTWLuDH5cpnpdB', // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            'secretKey'       => 'NXSL8mDO0OYWDftugDUXVGsQwITRCjNo', // 固定密钥,若为明文密钥，请直接以'xxx'形式填入，不要填写到getenv()函数中
+            'bucket'          => 'sw-cdn-1255862984', // 换成你的 bucket
+            'region'          => 'ap-beijing', // 换成 bucket 所在园区
             'durationSeconds' => 3600, // 密钥有效期
-            // 允许操作（上传）的对象前缀，可以根据自己网站的用户登录态判断允许上传的目录，例子： user1/* 或者 * 或者a.jpg
-            // 请注意当使用 * 时，可能存在安全风险，详情请参阅：https://cloud.tencent.com/document/product/436/40265
-            //            'allowPrefix' => $path,
-            'allowPrefix' => '/*',
-            // 密钥的权限列表。简单上传和分片需要以下的权限，其他权限列表请看 https://cloud.tencent.com/document/product/436/31923
-            'allowActions' => [
+            'allowPrefix'     => $path,
+            'allowActions'    => [
                 // 所有 action 请看文档 https://cloud.tencent.com/document/product/436/31923
                 // 简单上传
                 'name/cos:PutObject',               //上传一个对象至存储桶
                 'name/cos:PostObject',              //使用表单请求上传对象
-//                // 分片上传
-//                'name/cos:InitiateMultipartUpload', //初始化分块上传
-//                'name/cos:ListMultipartUploads',    //查询正在进行中的分块上传信息
-//                'name/cos:ListParts',               //查询特定分块上传操作中的已上传的块
-//                'name/cos:UploadPart',              //分块上传文件
-//                'name/cos:CompleteMultipartUpload'  //完成整个文件的分块上传
+                //                // 分片上传
+                'name/cos:InitiateMultipartUpload', //初始化分块上传
+                'name/cos:ListMultipartUploads',    //查询正在进行中的分块上传信息
+                'name/cos:ListParts',               //查询特定分块上传操作中的已上传的块
+                'name/cos:UploadPart',              //分块上传文件
+                'name/cos:CompleteMultipartUpload'  //完成整个文件的分块上传
             ]
         ];
-        return $sts->getTempKeys($config);
+        $data = $sts->getTempKeys($config);
+        $data['path'] = $path;
+        $data['bucket'] = $config['bucket'];
+        $data['region'] = $config['region'];
+        return $data;
     }
 
     /**
