@@ -29,17 +29,14 @@ class UploadService extends Service
      * 返回后缀所对应的文件类型
      * @return int
      */
-    private function type($ext)
+    private function getType($ext)
     {
-        $fileTypes = ['file', 'picture', 'compression', 'office', 'music', 'video', 'code'];
-        $picture = ['bmp', 'gif', 'ico', 'jpeg', 'jpg', 'png', 'psd', 'swf', 'tif'];
-        $compression = ['7z', 'apk', 'bz2', 'exe', 'gz', 'iso', 'jar', 'lz', 'mdf', 'rar', 'tar', 'xz', 'zip', 'zipx'];
-        $office = ['csv', 'doc', 'docx', 'log', 'pdf', 'ppt', 'pptx', 'tmp', 'txt', 'wps', 'xls', 'xlsx'];
-        $music = ['ape', 'flac', 'midi', 'mp2', 'mp3', 'mpa', 'ra', 'wav', 'wma', 'wv'];
-        $video = ['asf', 'avi', 'flv', 'mkv', 'mp4', 'ram', 'rm', 'rmvb', 'rp', 'rpm', 'wm', 'wmp', 'wmv'];
-        $code = ['conf', 'cpp', 'css', 'go', 'h', 'html', 'js', 'json', 'lock', 'md', 'mod', 'php', 'py', 'sh', 'sql', 'xml'];
+        $image = ['swf'];
+        $compression = ['rar', 'zip', 'apk', 'cab', 'arj', 'lzh', 'tar', 'gz', 'ace', 'uue', 'bz2．jar', 'iso', 'z', '7z ', 'xz', 'rar5', 'exe', 'lz', 'mdf', 'zipx'];
+        $office = ['doc', 'docx', 'docm', 'dotx', 'dotm', 'xls', 'xlsx', 'xlsm', 'xltx', 'xltm', 'xlsb', 'xlam', 'ppt', 'pptx', 'pptm', 'ppsx', 'ppsm', 'potx', 'potm', 'ppam', 'pdf', 'tmp', 'wps', 'wks', 'wcm', 'wdb'];
+        $text = ['h', 'go', 'md', 'mod', 'json', 'jsonml', 'lock', 'php', 'py', 'sh', 'sql', 'xml', 'xsl', 'bak', 'ldf'];
         switch ($ext) {
-            case in_array($ext, $picture):
+            case in_array($ext, $image):
                 $type = 1;
                 break;
             case in_array($ext, $compression):
@@ -48,18 +45,13 @@ class UploadService extends Service
             case in_array($ext, $office):
                 $type = 3;
                 break;
-            case in_array($ext, $music):
+            case in_array($ext, $text):
                 $type = 4;
-                break;
-            case in_array($ext, $video):
-                $type = 5;
-                break;
-            case in_array($ext, $code):
-                $type = 6;
                 break;
             default:
                 $type = 0;
         }
+        $fileTypes = ['application', 'image', 'compression', 'office', 'text'];
         return $fileTypes[$type];
     }
 
@@ -118,7 +110,8 @@ class UploadService extends Service
     {
         $file = $request->file('file');
         $ext = $file->getClientOriginalExtension();
-        $type = $this->type($ext);
+        [$type] = explode('/', $file->getMimeType());
+        if ($type == 'application') $type = $this->getType($ext);
         if (!strcmp(app('env'), 'prod')) {
             $path = $type . date('/Y/m/');
         } else {
