@@ -128,7 +128,7 @@ class UploadService extends Service
                 'secretKey' => $this->config['secret'],
             ]
         ]);
-        $oss->upload('cdn-1305937303', $path . $name, $file->getRealPath());
+        $oss->upload($this->config['target_bucket'], $path . $name, $file->getRealPath());
         $data['url'] = $this->domain . $path . $name;
         $insert = [
             'user_id' => $request->user()->id,
