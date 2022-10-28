@@ -9,7 +9,6 @@ namespace App\Services;
 
 use App\Models\UploadModel;
 use Qcloud\Cos\Client;
-use QCloud\COSSTS\Sts;
 
 class UploadService extends Service
 {
