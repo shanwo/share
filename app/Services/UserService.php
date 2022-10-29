@@ -174,6 +174,7 @@ class UserService extends Service
             ];
             $this->userThirdModel->insertGetId($insertThird);
         }
+        $this->redis::DET('user_infos:' . $this->uid);
         return $this->uid;
     }
 
