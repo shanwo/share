@@ -72,15 +72,15 @@ class UploadService extends Service
         if ($ext) {
             $name = $name . '.' . $ext;
         }
-        $config = $this->configInfo('oss');
-        $oss = new Client([
+        $config = $this->configInfo('cos');
+        $cos = new Client([
             'region'      => 'ap-beijing',
             'credentials' => [
                 'secretId'  => $config['app_id'],
                 'secretKey' => $config['secret'],
             ]
         ]);
-        $oss->upload($config['target_bucket'], $path . $name, $file->getRealPath());
+        $cos->upload($config['target_bucket'], $path . $name, $file->getRealPath());
         $data['url'] = $this->domain . $path . $name;
         $insert = [
             'user_id' => $request->user()->id,
