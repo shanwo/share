@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Redis;
 
 class Service
 {
-    const DELETE_YES      = -1;
-    const DELETE_NO       = 1;
-    const ENABLE          = 1;
-    const DISABLE         = -1;
+    const DELETE_YES = -1;
+    const DELETE_NO  = 1;
+    const ENABLE     = 1;
+    const DISABLE    = -1;
     public $redis;
     public $page = 1;
     public $size = 10;
@@ -37,7 +37,11 @@ class Service
     public function configInfo($name)
     {
         $data = [];
-        $config = $this->redis::GET('config:' . $name);
+        if ($name == 'wechat' && !strcmp(app('env'), 'prod')) {
+            $config = $this->redis::GET('config:wechat-test');
+        } else {
+            $config = $this->redis::GET('config:' . $name);
+        }
         if ($config) {
             $data = json_decode($config, true);
         } else {
