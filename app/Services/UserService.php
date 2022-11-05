@@ -80,7 +80,7 @@ class UserService extends Service
 
     public function driver($name)
     {
-        if($name == 'wechat' && !strcmp(app('env'), 'prod')) {
+        if($name == 'wechat' && strcmp(app('env'), 'prod')) {
             $config = $this->configInfo('wechat-test');
         }else{
             $config = $this->configInfo($name);
