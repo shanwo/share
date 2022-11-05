@@ -37,8 +37,8 @@ class Service
     public function configInfo($name)
     {
         $data = [];
-        if ($name == 'wechat' && strcmp(app('env'), 'prod')) {
-            $config = $this->redis::GET('config:wechat-test');
+        if (in_array($name, ['wechat', 'official']) && strcmp(app('env'), 'prod')) {
+            $config = $this->redis::GET('config:' . $name . '-test');
         } else {
             $config = $this->redis::GET('config:' . $name);
         }
