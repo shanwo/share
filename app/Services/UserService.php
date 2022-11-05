@@ -80,7 +80,11 @@ class UserService extends Service
 
     public function driver($name)
     {
-        $config = $this->configInfo($name);
+        if($name == 'wechat' && !strcmp(app('env'), 'prod')) {
+            $config = $this->configInfo('wechat-test');
+        }else{
+            $config = $this->configInfo($name);
+        }
         //公众号数据，使用微信驱动
         if ($name == 'official') {
             $socialite = new SocialiteManager([
