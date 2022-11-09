@@ -117,7 +117,7 @@ class UserService extends Service
                 $this->redis::DEL('signIn:' . $configName . ':' . $state);
             }
             $user = $this->driver($configName)->userFromCode($request['code']);
-            $user['ip'] = $request->ip();
+            $user['ip'] = $this->getRealIp();
             $uid = $this->wechat($user, $configName);
             $data = $this->info($uid);
             if (!empty($data['api_token'])) $this->redis::SETEX('user_tokens:' . $data['api_token'], $this->oneDay * 30, $uid);
