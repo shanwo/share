@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', 'https://shanwo.cc');
 
 Route::prefix('base')->group(function () {
+//协议
+    Route::get('protocol', 'ProtocolController@info');
 //地区信息
     Route::get('area', 'AreaController@lists');
 //文件上传
