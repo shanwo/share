@@ -14,11 +14,10 @@ class ProtocolService extends Service
         parent::__construct();
     }
 
-
     public function info($appId,$type)
     {
-        $info['name'] = '';
-        $info['desc'] = '';
+        $info['name'] = '对应小程序协议类型名称';
+        $info['desc'] = '对应小程序协议类型内容';
         return $info;
     }
 }
