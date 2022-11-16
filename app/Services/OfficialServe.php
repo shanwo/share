@@ -33,8 +33,7 @@ class OfficialServe extends Service
         if ($reply) {
             $data = json_decode($reply, true);
         } else {
-            $where[] = ['status', '=', 1];
-            $where[] = ['is_delete', '=', Service::DELETE_NO];
+            $where[] = ['status', '=', Service::DELETE_NO];
             $lists = $this->replyModel->select('id', 'type', 'keyword', 'comment')->where($where)->get()->toArray();
             foreach ($lists as $k => $v) {
                 $number = $this->redis::ZSCORE('reply_number', $v['keyword']);

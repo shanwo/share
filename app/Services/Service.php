@@ -45,7 +45,7 @@ class Service
         if ($config) {
             $data = json_decode($config, true);
         } else {
-            $lists = $this->configModel->where(['autoload' => 1, 'is_delete' => Service::DELETE_NO])->get()->toArray();
+            $lists = $this->configModel->where(['autoload' => 1, 'status' => Service::DELETE_NO])->get()->toArray();
             foreach ($lists as $k => $v) {
                 $this->redis::SET('config:' . $v['option_name'], $v['option_value']);
                 if ($v['option_name'] == $name) {
@@ -61,7 +61,7 @@ class Service
     {
         $tag = $this->redis::HGET('tags', $key);
         if (!$tag) {
-            $lists = $this->tagModel->select('id', 'mark')->where(['status' => Service::ENABLE, 'is_delete' => Service::DELETE_NO])->get()->toArray();
+            $lists = $this->tagModel->select('id', 'mark')->where(['status' => Service::ENABLE])->get()->toArray();
             foreach ($lists as $k => $v) {
                 if ($v['mark'] == $key) {
                     $tag = $v['id'];
