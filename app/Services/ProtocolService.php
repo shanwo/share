@@ -17,7 +17,7 @@ class ProtocolService extends Service
     public function info($appId,$type)
     {
         $info['name'] = '对应小程序协议类型名称';
-        $info['desc'] = '对应小程序协议类型内容';
+        $info['desc'] = "对应小程序协议类型内容,<b>富文本格式</b>";
         return $info;
     }
 }
