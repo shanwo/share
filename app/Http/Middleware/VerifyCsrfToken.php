@@ -19,8 +19,8 @@ class VerifyCsrfToken extends Middleware
         'user/signIn',
         'user/official',
         'user/wechat',
+        'base/protocol',
         'base/official',
-        'base/wechat',
     ];
 
     public function handle($request, Closure $next)
