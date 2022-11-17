@@ -13,7 +13,6 @@ use Qcloud\Cos\Client;
 class UploadService extends Service
 {
     protected $uploadModel;
-    private $domain = 'https://cdn.shanwo.cc/';
 
     public function __construct()
     {
@@ -81,7 +80,7 @@ class UploadService extends Service
             ]
         ]);
         $cos->upload($config['target_bucket'], $path . $name, $file->getRealPath());
-        $data['url'] = $this->domain . $path . $name;
+        $data['url'] = env('APP_CDN') . $path . $name;
         $insert = [
             'user_id' => $request->user()->id,
             'url'     => $path . $name,
