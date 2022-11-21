@@ -60,8 +60,7 @@ class UserController extends Controller
         }
         try {
             $miniApp = new Application($applets);
-            $appData['raw'] = $miniApp->getUtils()->codeToSession($this->request->input('code'));
-            $appData['ip'] = $this->request->ip();
+            $appData = $miniApp->getUtils()->codeToSession($this->request->input('code'));
             $uid = $this->userService->wechat($appData, 'wxapp');
             $data = $this->userService->info($uid);
             if (!empty($data['api_token'])) $this->service->redis::SETEX('user_tokens:' . $data['api_token'], $this->service->oneDay * 30, $uid);

@@ -130,7 +130,7 @@ class UserService extends Service
     public function wechat($user, $configName)
     {
         $config = $this->configInfo($configName);
-        $raw = array_change_key_case($user['raw'], CASE_LOWER);
+        $raw = array_change_key_case($user, CASE_LOWER);
         $where[] = ['source', '=', $config['name']];
         $where[] = ['open_id', '=', $raw['openid']];
         $where[] = ['app_id', '=', $config['app_id']];
@@ -140,7 +140,7 @@ class UserService extends Service
                 return ['msg' => '当前微信已绑定其他账号'];
             }
             $update = [
-                'login_ip'      => $user['ip'],
+                'login_ip'      => $this->getRealIp(),
                 'status'        => Service::ENABLE,
                 'logins_number' => $userThird['logins_number'] + 1
             ];
@@ -158,7 +158,7 @@ class UserService extends Service
                 $insertUser = [
                     'nickname'  => $nickname,
                     'sex'       => $raw['sex'] ?? $raw['gender'] ?? 0,
-                    'avatar'    => $raw['headimgurl'] ?? $raw['avatarurl'] ?? 'https://cdn.shanwo.cc/image/avatar.jpg',
+                    'avatar'    => $raw['headimgurl'] ?? $raw['avatarurl'] ?? 'https://cdn.shanwo.cc/image/avatar.png',
                     'api_token' => $token
                 ];
                 $this->uid = $this->userModel->insertGetId($insertUser);
@@ -173,7 +173,7 @@ class UserService extends Service
                 'open_id'  => $raw['openid'],
                 'source'   => $config['name'],
                 'app_id'   => $config['app_id'],
-                'login_ip' => $user['ip'],
+                'login_ip' => $this->getRealIp(),
                 'original' => json_encode($raw)
             ];
             $this->userThirdModel->insertGetId($insertThird);

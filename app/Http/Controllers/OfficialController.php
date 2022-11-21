@@ -68,10 +68,9 @@ class OfficialController extends Controller
             $config['name'] = 'official';
             switch ($message->MsgType) {
                 case 'event':
-                    $user['raw'] = $this->official->getClient()->get('cgi-bin/user/info', [
+                    $user = $this->official->getClient()->get('cgi-bin/user/info', [
                         'query' => ['openid' => $this->request->input('openid')]
                     ])->toArray();
-                    $user['ip'] = $this->request->ip();
                     $this->service->redis::SETEX('request_official:' . LARAVEL_START . ':user', $this->service->oneDay / 12, json_encode($user));
                     return $this->officialServe->eventType($message, $user, $config);
                 case 'text':
