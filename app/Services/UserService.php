@@ -37,7 +37,7 @@ class UserService extends Service
         if (!$info) {
             $info = $this->userModel->whereKey($id)->first();
             $info['contact'] = json_decode($info['contact'], true);
-            $info['third'] = $this->userThirdModel->select('id', 'logins_number', 'source', 'open_id', 'login_ip', 'created_at')->where(['user_id' => $id, 'status' => Service::ENABLE])->get()->toArray();
+            $info['third'] = $this->userThirdModel->select('id', 'logins_number', 'app_id', 'open_id', 'login_ip', 'created_at')->where(['user_id' => $id, 'status' => Service::ENABLE])->get()->toArray();
             $this->redis::SET('user_infos:' . $id, json_encode($info, JSON_UNESCAPED_UNICODE));
         }
         return $info;
@@ -116,7 +116,8 @@ class UserService extends Service
                 $this->uid = $this->redis::GET('signIn:' . $configName . ':' . $state);
                 $this->redis::DEL('signIn:' . $configName . ':' . $state);
             }
-            $user = $this->driver($configName)->userFromCode($request['code']);
+            $res = $this->driver($configName)->userFromCode($request['code'])->toArray();
+            $user = $res['raw'];
             $user['ip'] = $this->getRealIp();
             $uid = $this->wechat($user, $configName);
             $data = $this->info($uid);

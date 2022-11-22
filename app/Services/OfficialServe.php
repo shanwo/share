@@ -75,15 +75,18 @@ class OfficialServe extends Service
                 ['status', '=', 1]
             ];
             $userThird = $this->userThirdModel->where($where)->first(['id', 'user_id']);
-            $insert = [
-                'user_id'  => $userThird['user_id'],
-                'contacts' => '微信公众号',
-                'content'  => mb_substr($keyword, 4)
-            ];
-            $this->feedbackModel->insertGetId($insert);
-            return '你提交的信息小闪已经记下啦[耶]';
+            if ($userThird) {
+                $insert = [
+                    'user_id'  => $userThird['user_id'],
+                    'contacts' => '微信公众号',
+                    'content'  => mb_substr($keyword, 4)
+                ];
+                $this->feedbackModel->insertGetId($insert);
+                return '你提交的信息已经记下啦[耶]';
+            }
+            return '未能获取到你的用户ID，请重新关注公众号';
         }
-        return "小闪搞没懂你的意思哇[委屈]\n如果你有什么话，可以这样告诉我：\n#酱紫#[想说的话]\n例如：#酱紫#期待新功能哦";
+        return "我搞没懂你的意思哇[委屈]\n如果你有什么话，可以这样告诉我：\n#酱紫#[想说的话]\n例如：#酱紫#期待新功能哦";
     }
 
     private function swpay($pay, $uid)
@@ -116,11 +119,11 @@ class OfficialServe extends Service
     {
         switch (Strtolower($message['Event'])) {
             case'subscribe':               //订阅
-                (new UserService)->wechat($user, $config);
+                (new UserService)->wechat($user, $config['name']);
                 return $this->reply($message);
             case'unsubscribe':             //取消订阅
                 $where[] = ['source', '=', 'official'];
-                $where[] = ['open_id', '=', $user['raw']['openid']];
+                $where[] = ['open_id', '=', $user['openid']];
                 $where[] = ['app_id', '=', $config['app_id']];
                 $this->userThirdModel->where($where)->update(['status' => 2]);
                 return '等你回来啊';
@@ -129,7 +132,7 @@ class OfficialServe extends Service
                 $pay = $this->redis::HGET('pay_channel:' . $channel, $id);
                 if (!$pay) return '支付渠道不存在';
                 $where[] = ['source', '=', 'official'];
-                $where[] = ['open_id', '=', $user['raw']['openid']];
+                $where[] = ['open_id', '=', $user['openid']];
                 $where[] = ['app_id', '=', $config['app_id']];
                 $userThird = $this->userThirdModel->where($where)->first(['id', 'user_id']);
                 return $this->$action($pay, $userThird['user_id']);
