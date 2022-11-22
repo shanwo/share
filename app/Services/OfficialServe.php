@@ -138,7 +138,7 @@ class OfficialServe extends Service
                 return $this->$action($pay, $userThird['user_id']);
             default:
         }
-        return '小闪还没有开启这个技能哇[委屈]';
+        return '我还没有开启这个技能哇[委屈]';
     }
 
     public function textType($message, $config)
