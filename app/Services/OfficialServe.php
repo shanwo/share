@@ -122,7 +122,7 @@ class OfficialServe extends Service
                 (new UserService)->wechat($user, $config['name']);
                 return $this->reply($message);
             case'unsubscribe':             //取消订阅
-                $where[] = ['source', '=', 'official'];
+                $where[] = ['source', '=', $config['name']];
                 $where[] = ['open_id', '=', $user['openid']];
                 $where[] = ['app_id', '=', $config['app_id']];
                 $this->userThirdModel->where($where)->update(['status' => 2]);
@@ -131,7 +131,7 @@ class OfficialServe extends Service
                 [$action, $channel, $id] = explode(':', $message['EventKey']);
                 $pay = $this->redis::HGET('pay_channel:' . $channel, $id);
                 if (!$pay) return '支付渠道不存在';
-                $where[] = ['source', '=', 'official'];
+                $where[] = ['source', '=', $config['name']];
                 $where[] = ['open_id', '=', $user['openid']];
                 $where[] = ['app_id', '=', $config['app_id']];
                 $userThird = $this->userThirdModel->where($where)->first(['id', 'user_id']);
