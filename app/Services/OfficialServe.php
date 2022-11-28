@@ -89,14 +89,11 @@ class OfficialServe extends Service
         return "我搞没懂你的意思哇[委屈]\n如果你有什么话，可以这样告诉我：\n#酱紫#[想说的话]\n例如：#酱紫#期待新功能哦";
     }
 
-    private function swpay($pay, $uid)
+    private function swpay($info, $apiToken)
     {
-        $user = $this->redis::GET('user_infos:' . $uid);
-        $user = json_decode($user);
-        $info = json_decode($pay);
         $form['timeout'] = 3;
         $form['json'] = ['id' => $info->id, 'type' => 'NATIVE', 'channel' => $info->channel];
-        $form['headers'] = ['Authorization' => ['Bearer ' . $user->api_token]];
+        $form['headers'] = ['Authorization' => ['Bearer ' . $apiToken]];
         $url = env('APP_URL') . '/sw/pay/send';
         $api = (new Client())->post($url, $form);
         if ($api->getStatusCode() == 200) {
@@ -125,17 +122,25 @@ class OfficialServe extends Service
                 $where[] = ['source', '=', $config['name']];
                 $where[] = ['open_id', '=', $user['openid']];
                 $where[] = ['app_id', '=', $config['app_id']];
-                $this->userThirdModel->where($where)->update(['status' => 2]);
+                $userThird = $this->userThirdModel->from('user_third as ut')
+                    ->leftJoin('user as u', 'ut.user_id', '=', 'u.id')->where($where)
+                    ->first(['ut.id', 'ut.user_id', 'u.api_token']);
+                $this->redis::DEL('user_tokens:' . $userThird['api_token']);
+                $this->redis::DEL('user_infos:' . $userThird['user_id']);
+                $this->userThirdModel->whereKey($userThird['id'])->update(['status' => 2]);
                 return '等你回来啊';
             case'click':                   //点击事件
                 [$action, $channel, $id] = explode(':', $message['EventKey']);
                 $pay = $this->redis::HGET('pay_channel:' . $channel, $id);
                 if (!$pay) return '支付渠道不存在';
-                $where[] = ['source', '=', $config['name']];
-                $where[] = ['open_id', '=', $user['openid']];
-                $where[] = ['app_id', '=', $config['app_id']];
-                $userThird = $this->userThirdModel->where($where)->first(['id', 'user_id']);
-                return $this->$action($pay, $userThird['user_id']);
+                $where[] = ['ut.source', '=', $config['name']];
+                $where[] = ['ut.open_id', '=', $user['openid']];
+                $where[] = ['ut.app_id', '=', $config['app_id']];
+                $userThird = $this->userThirdModel->from('user_third as ut')
+                    ->leftJoin('user as u', 'ut.user_id', '=', 'u.id')->where($where)
+                    ->first(['ut.id', 'ut.user_id', 'u.api_token']);
+                if (!empty($userThird['api_token'])) $this->redis::SETEX('user_tokens:' . $userThird['api_token'], $this->oneDay * 30, $userThird['user_id']);
+                return $this->$action(json_decode($pay), $userThird['api_token']);
             default:
         }
         return '我还没有开启这个技能哇[委屈]';
