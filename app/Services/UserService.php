@@ -180,6 +180,7 @@ class UserService extends Service
             $this->userThirdModel->insertGetId($insertThird);
         }
         $this->redis::DEL('user_infos:' . $this->uid);
+        $this->info($this->uid);
         return $this->uid;
     }
 
