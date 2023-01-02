@@ -139,7 +139,7 @@ class OfficialServe extends Service
                 $userThird = $this->userThirdModel->from('user_third as ut')
                     ->leftJoin('user as u', 'ut.user_id', '=', 'u.id')->where($where)
                     ->first(['ut.id', 'ut.user_id', 'u.api_token']);
-                if (!empty($userThird['api_token'])) $this->redis::SETEX('user_tokens:' . $userThird['api_token'], $this->oneDay * 30, $userThird['user_id']);
+                if (!empty($userThird['api_token'])) $this->redis::SETEX('user_tokens:' . $userThird['api_token'], self::ONEDAY * 30, $userThird['user_id']);
                 return $this->$action(json_decode($pay), $userThird['api_token']);
             default:
         }

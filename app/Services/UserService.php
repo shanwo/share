@@ -121,7 +121,7 @@ class UserService extends Service
             $user['ip'] = $this->getRealIp();
             $uid = $this->wechat($user, $configName);
             $data = $this->info($uid);
-            if (!empty($data['api_token'])) $this->redis::SETEX('user_tokens:' . $data['api_token'], $this->oneDay * 30, $uid);
+            if (!empty($data['api_token'])) $this->redis::SETEX('user_tokens:' . $data['api_token'], self::ONEDAY * 30, $uid);
         } catch (AuthorizeFailedException $e) {
             $data['msg'] = '(' . $e->body['errcode'] . '):' . $e->body['errmsg'];
         }

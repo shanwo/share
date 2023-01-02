@@ -18,10 +18,8 @@ class Service
     const DELETE_NO  = 1;
     const ENABLE     = 1;
     const DISABLE    = -1;
+    const ONEDAY     = 86400;
     public $redis;
-    public $page = 1;
-    public $size = 10;
-    public $oneDay = 86400;
     protected $tagModel;
     protected $configModel;
     protected $userTagModel;
